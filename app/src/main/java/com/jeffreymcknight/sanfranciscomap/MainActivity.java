@@ -25,6 +25,14 @@ import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.jeffreymcknight.sanfranciscomap.api.ApiClient;
+import com.jeffreymcknight.sanfranciscomap.model.StreetBean;
+
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 //import com.google.android.gms.maps.MapFragment;
 
 public class MainActivity extends AppCompatActivity {
@@ -100,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
      * A placeholder fragment containing a simple view.
      */
     public static class PlaceholderFragment extends Fragment {
+        private static final String TAG = PlaceholderFragment.class.getSimpleName();
         /**
          * The fragment argument representing the section number for this
          * fragment.
@@ -127,7 +136,31 @@ public class MainActivity extends AppCompatActivity {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             TextView textView = (TextView) rootView.findViewById(R.id.section_label);
             textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+            textView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    handleHelloClick();
+                }
+            });
             return rootView;
+        }
+
+        private void handleHelloClick() {
+            ApiClient.getInstance().getStreets(10, 1, new Callback<List<StreetBean>>() {
+                @Override
+                public void onResponse(Call<List<StreetBean>> call, Response<List<StreetBean>> response) {
+                    Log.d(TAG, "onResponse()"
+                            + " -- call: " + call
+                            + " -- response: " + response
+                            + "\n -- response.body().toString(): " + response.body().toString()
+                    );
+                }
+
+                @Override
+                public void onFailure(Call<List<StreetBean>> call, Throwable t) {
+
+                }
+            });
         }
     }
 
@@ -148,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
             if (position == 0){
-                return PlaceholderFragment.newInstance(position + 1);
+                return StreeListFragment.newInstance(position + 1);
             } else if (position == 1){
                 GoogleMapOptions mapOptions;
                 mapOptions = buildCameraPositionOption(37.7749F, -122.4194F, 16.0F);
@@ -176,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            // Show 3 total pages.
+            // Show 2 tabs.
             return 2;
         }
 

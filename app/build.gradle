@@ -17,16 +17,41 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        buildTypes.each {
+            // ApiKeyMovieDb is stored in gradle.properties
+            it.buildConfigField 'String', 'API_KEY_GOOGLE_MAPS', ApiKeyGoogleMaps
+            it.buildConfigField 'String', 'API_KEY_SF_GOV', ApiKeySfGov
+        }
     }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    /** Android support libraries */
+    compile 'com.android.support:appcompat-v7:25.1.1'
+    compile 'com.android.support:design:25.1.1'
+
+    /** Google Maps */
+    compile 'com.google.android.gms:play-services-maps:10.2.1'
+    /** RecyclerView for efficient list scrolling */
+    compile 'com.android.support:recyclerview-v7:25.1.1'
+
+    /** Retrofit for network requests */
+    compile 'com.squareup.retrofit2:retrofit:2.1.0'
+    compile 'com.squareup.retrofit2:converter-gson:2.1.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
+
+    /** RxJava for event-driven data streams */
+    compile 'io.reactivex:rxandroid:1.2.1'
+    compile 'io.reactivex:rxjava:1.1.6'
+    compile 'com.jakewharton.rxbinding:rxbinding:0.4.0'
+
+    /** Espresso for Instrumented tests */
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:25.1.1'
-    compile 'com.android.support:design:25.1.1'
-    compile 'com.google.android.gms:play-services-maps:10.2.1'
+
+    /** JUnit for unit tests */
     testCompile 'junit:junit:4.12'
 }
