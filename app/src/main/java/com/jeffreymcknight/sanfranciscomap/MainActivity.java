@@ -28,6 +28,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.jeffreymcknight.sanfranciscomap.api.ApiClient;
 import com.jeffreymcknight.sanfranciscomap.model.StreetBean;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -35,8 +36,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 //import com.google.android.gms.maps.MapFragment;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements StreeListFragment.Listener {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -51,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+    private List<CharSequence> mSelectionList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        mSelectionList = new ArrayList<>(2);
     }
 
 
@@ -102,6 +106,32 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onItemClick(View view) {
+        Log.d(TAG, "onItemClick()"
+                + " -- view: " + view);
+        if ((view instanceof TextView))
+            Log.d(TAG, "onItemClick()"
+                    + " -- view.getText(): " + ((TextView) view).getText());
+            if (view.isSelected()) {
+                if (mSelectionList.isEmpty()) {
+                    mSelectionList.add(((TextView) view).getText());
+                } else if (mSelectionList.size() == 1) {
+                    findIntersection();
+                } else {
+                    Log.w(TAG, "onItemClick()"
+                            + " -- mSelectionList too big: " + mSelectionList.size());
+                }
+            } else {
+                mSelectionList.remove(((TextView) view).getText());
+            }
+    }
+
+    private void findIntersection() {
+        Log.d(TAG, "findIntersection()");
+
     }
 
     /**
