@@ -34,7 +34,7 @@ public class StreeListFragment extends Fragment {
     private StreeListFragment.Listener mListener;
     private View.OnClickListener mClickListener;
 
-    public static Fragment newInstance(int i) {
+    public static Fragment newInstance() {
         StreeListFragment fragment = new StreeListFragment();
         Bundle args = new Bundle();
 //        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
@@ -63,7 +63,7 @@ public class StreeListFragment extends Fragment {
         /** Set up {@link RecyclerView} */
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.street_list);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        String[] streetNames = {"Lincoln Ave", "Shafter Ave", "Hampshire Way", "Stafford Dr"};
+        String[] streetNames = {"Lincoln Ave", "Shafter Ave", "Hampshire Way", "Stafford Dr", "Market St", "Kearny St", "Potrero Ave", "Mariposa St"};
         mClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -93,13 +93,16 @@ public class StreeListFragment extends Fragment {
                 + " -- view: " + view
                 + " -- view.getText(): " + ((view instanceof TextView) ? ((TextView) view).getText() : "no text!")
         );
+        view.setSelected(!view.isSelected());
         if (mListener != null){
             mListener.onItemClick(view);
         }
     }
 
     private void handleTitleClick() {
-        ApiClient.getInstance().getStreets(100, 100, new Callback<List<StreetBean>>() {
+        int limit = 3000;
+        int offset = 0;
+        ApiClient.getInstance().getStreets(limit, offset, new Callback<List<StreetBean>>() {
             @Override
             public void onResponse(Call<List<StreetBean>> call, Response<List<StreetBean>> response) {
                 Log.d(TAG, "onResponse()"
@@ -114,8 +117,8 @@ public class StreeListFragment extends Fragment {
                             + " -- streetNames["+i+"]: " + streetNames[i]);
                 }
                 // TODO: create/call method mAdapter.addItems(List<StreetBean>)
-                mAdapter = new StreetListAdapter(streetNames, mClickListener);
-                mRecyclerView.setAdapter(mAdapter);
+                RecyclerView.Adapter adapter = new StreetListAdapter(streetNames, mClickListener);
+                mRecyclerView.swapAdapter(adapter, true);
             }
 
             @Override

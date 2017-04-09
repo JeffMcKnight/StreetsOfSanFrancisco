@@ -18,6 +18,7 @@
         android:layout_height="match_parent"
         android:padding="@dimen/margin_small"
         android:background="@android:color/darker_gray"
+        android:choiceMode="multipleChoice"
         >
 
     </android.support.v7.widget.RecyclerView>

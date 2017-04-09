@@ -21,24 +21,30 @@ import android.view.ViewGroup;
 
 import android.widget.TextView;
 
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.jeffreymcknight.sanfranciscomap.api.ApiClient;
+import com.jeffreymcknight.sanfranciscomap.model.GeocoderResult;
 import com.jeffreymcknight.sanfranciscomap.model.StreetBean;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-//import com.google.android.gms.maps.MapFragment;
 
 public class MainActivity extends AppCompatActivity implements StreeListFragment.Listener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+
+    private String mIntersectedStreet;
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -53,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements StreeListFragment
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
-    private List<CharSequence> mSelectionList;
+    private GoogleMap mMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements StreeListFragment
             }
         });
 
-        mSelectionList = new ArrayList<>(2);
+        mIntersectedStreet = "";
     }
 
 
@@ -114,24 +120,81 @@ public class MainActivity extends AppCompatActivity implements StreeListFragment
                 + " -- view: " + view);
         if ((view instanceof TextView))
             Log.d(TAG, "onItemClick()"
-                    + " -- view.getText(): " + ((TextView) view).getText());
-            if (view.isSelected()) {
-                if (mSelectionList.isEmpty()) {
-                    mSelectionList.add(((TextView) view).getText());
-                } else if (mSelectionList.size() == 1) {
-                    findIntersection();
-                } else {
-                    Log.w(TAG, "onItemClick()"
-                            + " -- mSelectionList too big: " + mSelectionList.size());
-                }
+                    + " -- view.getText(): " + ((TextView) view).getText()
+                    + " -- view.`isSelected(): " + view.isSelected()
+            );
+        String crossStreet = (String) ((TextView) view).getText();
+        if (view.isSelected()) {
+            if (mIntersectedStreet.isEmpty()) {
+                mIntersectedStreet = crossStreet;
             } else {
-                mSelectionList.remove(((TextView) view).getText());
+                findIntersection(mIntersectedStreet, crossStreet);
+                mViewPager.setCurrentItem(1, true);
+                mIntersectedStreet = "";
+                view.setSelected(false);
             }
+        } else if (crossStreet.equals(mIntersectedStreet)){
+            mIntersectedStreet = "";
+        }
     }
 
-    private void findIntersection() {
+    /**
+     *
+     * @param streetName1
+     * @param streetName2
+     */
+    private void findIntersection(String streetName1, String streetName2) {
         Log.d(TAG, "findIntersection()");
+        Callback<GeocoderResult> callback = new Callback<GeocoderResult>() {
+            @Override
+            public void onResponse(Call<GeocoderResult> call, Response<GeocoderResult> response) {
+                handleResponse(response);
+            }
 
+            @Override
+            public void onFailure(Call<GeocoderResult> call, Throwable t) {
+                Log.w(TAG, "onFailure()"
+                        + " -- call: " + call
+                        + " -- t: " + t);
+            }
+        };
+        ApiClient.getInstance().getIntersection(streetName1, streetName2, callback);
+    }
+
+    /**
+     *
+     * @param response
+     */
+    private void handleResponse(Response<GeocoderResult> response) {
+        Log.d(TAG, "onResponse()"
+//                        + " -- call: " + call
+//                        + " -- response: " + response
+                        + "\n -- response.body(): " + response.body()
+//                        + "\n -- lat: " + response.body().results[0].geometry.location.lat
+//                        + " -- lng: " + response.body().results[0].geometry.location.lng
+        );
+        if (response.body().results.length > 0){
+            LatLng latLng = new LatLng(
+                    response.body().results[0].geometry.location.lat,
+                    response.body().results[0].geometry.location.lng);
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLng(latLng);
+            mMap.animateCamera(cameraUpdate);
+            MarkerOptions markerOptions = new MarkerOptions();
+            markerOptions.position(latLng);
+            mMap.addMarker(markerOptions);
+        } else {
+            Snackbar.make(mViewPager, R.string.msg_no_intersection_found, Snackbar.LENGTH_LONG)
+                    .setAction("Action", null)
+                    .show();
+        }
+    }
+
+    /**
+     * Get a reference to the {@link GoogleMap} when it is ready.
+     * @param googleMap
+     */
+    private void handleMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
     }
 
     /**
@@ -211,11 +274,19 @@ public class MainActivity extends AppCompatActivity implements StreeListFragment
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
             if (position == 0){
-                return StreeListFragment.newInstance(position + 1);
+                return StreeListFragment.newInstance();
             } else if (position == 1){
                 GoogleMapOptions mapOptions;
                 mapOptions = buildCameraPositionOption(37.7749F, -122.4194F, 16.0F);
-                return SupportMapFragment.newInstance(mapOptions);
+                SupportMapFragment supportMapFragment = SupportMapFragment.newInstance(mapOptions);
+                OnMapReadyCallback callback = new OnMapReadyCallback() {
+                    @Override
+                    public void onMapReady(GoogleMap googleMap) {
+                        handleMapReady(googleMap);
+                    }
+                };
+                supportMapFragment.getMapAsync(callback);
+                return supportMapFragment;
             } else {
                 Log.w(TAG, "getItem()"
                         + " -- invalid position: " + position);
@@ -254,4 +325,5 @@ public class MainActivity extends AppCompatActivity implements StreeListFragment
             return null;
         }
     }
+
 }
