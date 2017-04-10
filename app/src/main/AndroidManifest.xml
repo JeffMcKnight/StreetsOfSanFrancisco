@@ -20,6 +20,12 @@
             </intent-filter>
         </activity>
 
+        <provider
+            android:authorities="com.jeffreymcknight.sanfranciscomap"
+            android:name=".model.StreetNameProvider"
+            android:exported="false"
+            >
+            </provider>
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAWerIHN-Ivh8xHqX-Fwrg2oGVSPBIug1Y" />

@@ -5,4 +5,5 @@
     <string name="tab_title_street_list">Street List</string>
     <string name="tab_title_map">Map</string>
     <string name="msg_no_intersection_found">No intersection found</string>
+    <string name="action_refresh">Refresh</string>
 </resources>
