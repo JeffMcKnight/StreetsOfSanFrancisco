@@ -98,10 +98,21 @@ public class StreeListFragment extends Fragment implements LoaderManager.LoaderC
             }
         };
         mAdapter = new StreetListAdapter(PLACEHOLDER_STREET_NAMES, mClickListener);
-        mRecyclerView.setAdapter(mAdapter);
+        mCursorAdapter = new StreetCursorAdapter(getContext());
+        mRecyclerView.setAdapter(mCursorAdapter);
 
         updateStreetNames();
         return rootView;
+    }
+
+    /**
+     * Start the Cursor Loader
+     * @param savedInstanceState
+     */
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        getLoaderManager().initLoader(LOADER_ID, null, this);
     }
 
     /**
@@ -171,8 +182,8 @@ public class StreeListFragment extends Fragment implements LoaderManager.LoaderC
                     Log.d(TAG, "onResponse()"
                             + " -- streetNames["+i+"]: " + streetNames[i]);
                 }
-                RecyclerView.Adapter adapter = new StreetListAdapter(streetNames, mClickListener);
-                mRecyclerView.swapAdapter(adapter, true);
+//                RecyclerView.Adapter adapter = new StreetListAdapter(streetNames, mClickListener);
+//                mRecyclerView.swapAdapter(adapter, true);
                 int rowsInserted = getContext().getContentResolver().bulkInsert(
                         StreetContract.StreetnameEntry.buildAllStreetsUri(),
                         contentValues);

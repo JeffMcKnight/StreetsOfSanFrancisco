@@ -35,6 +35,7 @@ public class StreetContract {
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH).build();
         /**  The name of the columns in the location database */
         public static final String COLUMN_FULLSTREETNAME = "fullstreetname";
+        public static final int INDEX_FULLSTREETNAME = 1;
         public static final String[] COLUMN_NAMES = {COLUMN_FULLSTREETNAME};
         private static final String KEY = "id";
         /** The MIME type */
