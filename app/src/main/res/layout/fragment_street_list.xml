@@ -11,7 +11,10 @@
         android:padding="@dimen/margin_small"
         android:background="@color/lighter_gray"
         android:choiceMode="multipleChoice"
+        android:scrollbars="vertical"
+        android:scrollbarThumbVertical="@drawable/scrollbar_thumb"
+        android:scrollbarStyle="insideInset"
+        android:scrollbarFadeDuration="@integer/scrollbar_fade_ms"
         >
-
     </android.support.v7.widget.RecyclerView>
 </LinearLayout>
