@@ -138,7 +138,7 @@ public class StreetCursorAdapter
 
         @Override
         public void bindCursor(Cursor cursor) {
-            mStreetNameView.setText(cursor.getString(StreetContract.StreetnameEntry.INDEX_FULLSTREETNAME));
+            mStreetNameView.setText(stripLeadingZeros(cursor.getString(StreetContract.StreetnameEntry.INDEX_FULLSTREETNAME)));
         }
 
         @Override
@@ -175,6 +175,18 @@ public class StreetCursorAdapter
                 ((TextView) v).setTextColor(textColor);
             }
         }
+
+        /**
+         *
+         * @param streetName
+         */
+        private String stripLeadingZeros(String streetName) {
+            while (streetName.startsWith("0")){
+                streetName = streetName.substring(1);
+            }
+            return streetName;
+        }
+
     }
 
 }
