@@ -40,7 +40,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements StreeListFragment.Listener {
+public class MainActivity extends AppCompatActivity implements StreetListFragment.Listener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -115,27 +115,13 @@ public class MainActivity extends AppCompatActivity implements StreeListFragment
     }
 
     @Override
-    public void onItemClick(View view) {
-        Log.d(TAG, "onItemClick()"
-                + " -- view: " + view);
-        if ((view instanceof TextView))
-            Log.d(TAG, "onItemClick()"
-                    + " -- view.getText(): " + ((TextView) view).getText()
-                    + " -- view.`isSelected(): " + view.isSelected()
-            );
-        String crossStreet = (String) ((TextView) view).getText();
-        if (view.isSelected()) {
-            if (mIntersectedStreet.isEmpty()) {
-                mIntersectedStreet = crossStreet;
-            } else {
-                findIntersection(mIntersectedStreet, crossStreet);
-                mViewPager.setCurrentItem(1, true);
-                mIntersectedStreet = "";
-                view.setSelected(false);
-            }
-        } else if (crossStreet.equals(mIntersectedStreet)){
-            mIntersectedStreet = "";
-        }
+    public void onIntersectionSelected(String street, String crossStreet) {
+        Log.d(TAG, "onIntersectionSelected()"
+                + " -- street: " + street
+                + " -- crossStreet: " + crossStreet
+        );
+        findIntersection(street, crossStreet);
+        mViewPager.setCurrentItem(SectionsPagerAdapter.PAGER_INDEX_MAP, true);
     }
 
     /**
@@ -177,6 +163,7 @@ public class MainActivity extends AppCompatActivity implements StreeListFragment
             LatLng latLng = new LatLng(
                     response.body().results[0].geometry.location.lat,
                     response.body().results[0].geometry.location.lng);
+            // TODO: check whether CameraUpdateFactory is initialized; can throw NPE
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLng(latLng);
             mMap.animateCamera(cameraUpdate);
             MarkerOptions markerOptions = new MarkerOptions();
@@ -264,6 +251,8 @@ public class MainActivity extends AppCompatActivity implements StreeListFragment
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
         private final String TAG = SectionsPagerAdapter.class.getSimpleName();
+        static final int PAGER_INDEX_STREETLIST = 0;
+        static final int PAGER_INDEX_MAP = 1;
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -273,9 +262,9 @@ public class MainActivity extends AppCompatActivity implements StreeListFragment
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            if (position == 0){
-                return StreeListFragment.newInstance();
-            } else if (position == 1){
+            if (position == PAGER_INDEX_STREETLIST){
+                return StreetListFragment.newInstance();
+            } else if (position == PAGER_INDEX_MAP){
                 GoogleMapOptions mapOptions;
                 mapOptions = buildCameraPositionOption(37.7749F, -122.4194F, 16.0F);
                 SupportMapFragment supportMapFragment = SupportMapFragment.newInstance(mapOptions);

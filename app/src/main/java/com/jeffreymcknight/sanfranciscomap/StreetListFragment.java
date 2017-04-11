@@ -19,7 +19,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CursorAdapter;
 import android.widget.TextView;
 
 import com.jeffreymcknight.sanfranciscomap.adapter.StreetCursorAdapter;
@@ -28,6 +27,7 @@ import com.jeffreymcknight.sanfranciscomap.model.StreetBean;
 import com.jeffreymcknight.sanfranciscomap.model.StreetContract;
 
 import java.util.List;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -39,12 +39,12 @@ import retrofit2.Response;
  * Created by jeffmcknight on 4/6/17.
  */
 
-public class StreeListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-    private static final String TAG = StreeListFragment.class.getSimpleName();
+public class StreetListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+    private static final String TAG = StreetListFragment.class.getSimpleName();
     private final int LOADER_ID = this.hashCode();
     private RecyclerView.Adapter mAdapter;
     private RecyclerView mRecyclerView;
-    private StreeListFragment.Listener mListener;
+    private StreetListFragment.Listener mListener;
     private View.OnClickListener mClickListener;
     private StreetCursorAdapter mCursorAdapter;
     public static final String[] PLACEHOLDER_STREET_NAMES = new String[]{
@@ -62,7 +62,7 @@ public class StreeListFragment extends Fragment implements LoaderManager.LoaderC
      * @return
      */
     public static Fragment newInstance() {
-        StreeListFragment fragment = new StreeListFragment();
+        StreetListFragment fragment = new StreetListFragment();
         Bundle args = new Bundle();
 //        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
         fragment.setArguments(args);
@@ -94,11 +94,26 @@ public class StreeListFragment extends Fragment implements LoaderManager.LoaderC
         mClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                handleListItemClick(view);
+                Set<Integer> selectedIndexes = mCursorAdapter.getSelectedItems();
+                Log.i(TAG, "onClick()"
+                        + " -- selectedIndexes.size(): " + selectedIndexes.size());
+                if (selectedIndexes.size() >= 2){
+                    Integer[] streetIndexes = new Integer[selectedIndexes.size()];
+                    streetIndexes = selectedIndexes.toArray(streetIndexes);
+                    Log.i(TAG, "onClick()"
+                            + "\n -- streetIndexes[0]: " + streetIndexes[0]
+                            + "\n -- streetIndexes[1]: " + streetIndexes[1]
+                    );
+                    notifyIntersectionSelected(
+                            mCursorAdapter.getStreetName(streetIndexes[0]),
+                            mCursorAdapter.getStreetName(streetIndexes[1]));
+                    mCursorAdapter.clearSelectedItems();
+                }
             }
         };
-        mAdapter = new StreetListAdapter(PLACEHOLDER_STREET_NAMES, mClickListener);
+//        mAdapter = new StreetListAdapter(PLACEHOLDER_STREET_NAMES, mClickListener);
         mCursorAdapter = new StreetCursorAdapter(getContext());
+        mCursorAdapter.setListener(mClickListener);
         mRecyclerView.setAdapter(mCursorAdapter);
 
         updateStreetNames();
@@ -143,17 +158,16 @@ public class StreeListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     /**
-     *
-     * @param view
+     * @param street
+     * @param crossStreet
      */
-    private void handleListItemClick(View view) {
-        Log.d(TAG, "handleListItemClick()"
-                + " -- view: " + view
-                + " -- view.getText(): " + ((view instanceof TextView) ? ((TextView) view).getText() : "no text!")
+    private void notifyIntersectionSelected(CharSequence street, CharSequence crossStreet) {
+        Log.d(TAG, "notifyIntersectionSelected()"
+                + " -- street: " + street
+                + " -- crossStreet: " + crossStreet
         );
-        view.setSelected(!view.isSelected());
         if (mListener != null){
-            mListener.onItemClick(view);
+            mListener.onIntersectionSelected((String) street, (String) crossStreet);
         }
     }
 
@@ -252,8 +266,11 @@ public class StreeListFragment extends Fragment implements LoaderManager.LoaderC
         mCursorAdapter.swapCursor(null);
     }
 
+    /**
+     * Notify when user has selected an intersection
+     */
     public interface Listener {
-        public void onItemClick(View view);
+        public void onIntersectionSelected(String street, String crossStreet);
     }
 
 
