@@ -14,7 +14,6 @@ import com.jeffreymcknight.sanfranciscomap.R;
 import com.jeffreymcknight.sanfranciscomap.model.StreetContract;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -122,7 +121,7 @@ public class StreetCursorAdapter
      *
      */
     static class ViewHolder extends RecyclerViewCursorViewHolder implements View.OnClickListener {
-        public final String TAG = ViewHolder.class.getSimpleName();
+        private final String TAG = ViewHolder.class.getSimpleName();
         private final TextView mStreetNameView;
         private ViewHolderListener mListener;
 
@@ -161,10 +160,20 @@ public class StreetCursorAdapter
             updateItemSelected(mStreetNameView, isSelected);
         }
 
+        /**
+         * TODO: replace this hack with xml
+         * @param v
+         * @param isSelected
+         */
         public void updateItemSelected(View v, boolean isSelected) {
             v.setSelected(isSelected);
-            int color = (v.isSelected() ? Color.CYAN : Color.WHITE);
-            v.setBackgroundColor(color);
+            int cyan = v.getResources().getColor(R.color.colorPrimary);
+            int backgroundColor = (v.isSelected() ? cyan : Color.WHITE);
+            int textColor = (v.isSelected() ? Color.WHITE: Color.BLACK);
+            v.setBackgroundColor(backgroundColor);
+            if (v instanceof TextView){
+                ((TextView) v).setTextColor(textColor);
+            }
         }
     }
 

@@ -1,8 +1,5 @@
 package com.jeffreymcknight.sanfranciscomap.api;
 
-/**
- * Created by jeffmcknight on 4/6/17.
- */
 
 import android.util.Log;
 
@@ -20,7 +17,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Singleton to make API calls
- * Created by jeffmcknight on 11/17/16.
+ * Created by jeffmcknight on 4/6/17.
  */
 public class ApiClient {
     // https://data.sfgov.org/resource/fuen-w6ja.json

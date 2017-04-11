@@ -42,7 +42,6 @@ import retrofit2.Response;
 public class StreetListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = StreetListFragment.class.getSimpleName();
     private final int LOADER_ID = this.hashCode();
-    private RecyclerView.Adapter mAdapter;
     private RecyclerView mRecyclerView;
     private StreetListFragment.Listener mListener;
     private View.OnClickListener mClickListener;
@@ -172,9 +171,7 @@ public class StreetListFragment extends Fragment implements LoaderManager.Loader
     }
 
     /**
-     * Retrieve street names from the SfGov.org API, and update {@link #mAdapter}, and the database
-     * TODO: remove {@link #mAdapter} once {@link com.jeffreymcknight.sanfranciscomap.adapter.StreetCursorAdapter}
-     * is implemented
+     * Retrieve street names from the SfGov.org API, and update the database
      */
     private void updateStreetNames() {
         int limit = 3000;
@@ -193,15 +190,11 @@ public class StreetListFragment extends Fragment implements LoaderManager.Loader
                     streetNames[i] = response.body().get(i).fullstreetname;
                     contentValues[i] = StreetContract.StreetnameEntry.buildContentValues(
                             response.body().get(i).fullstreetname);
-                    Log.d(TAG, "onResponse()"
-                            + " -- streetNames["+i+"]: " + streetNames[i]);
                 }
-//                RecyclerView.Adapter adapter = new StreetListAdapter(streetNames, mClickListener);
-//                mRecyclerView.swapAdapter(adapter, true);
                 int rowsInserted = getContext().getContentResolver().bulkInsert(
                         StreetContract.StreetnameEntry.buildAllStreetsUri(),
                         contentValues);
-                Log.i(TAG, "onResponse()"
+                Log.d(TAG, "onResponse()"
                         + " -- streetNames.length: " + streetNames.length
                         + " -- rowsInserted: " + rowsInserted
                 );
@@ -209,7 +202,9 @@ public class StreetListFragment extends Fragment implements LoaderManager.Loader
 
             @Override
             public void onFailure(Call<List<StreetBean>> call, Throwable t) {
-
+                Log.w(TAG, "onFailure()"
+                        + " -- call: " + call
+                        + " -- t: " + t);
             }
         });
     }
@@ -271,73 +266,6 @@ public class StreetListFragment extends Fragment implements LoaderManager.Loader
      */
     public interface Listener {
         public void onIntersectionSelected(String street, String crossStreet);
-    }
-
-
-    /**
-     * Adapter to tell {@link RecyclerView} what to display
-     */
-    public static class StreetListAdapter extends RecyclerView.Adapter<StreetListAdapter.ViewHolder> {
-        private String[] mStreetNames;
-
-        private View.OnClickListener mListener;
-
-        public StreetListAdapter(String[] streetNames, View.OnClickListener listener) {
-            mStreetNames = streetNames;
-            mListener = listener;
-        }
-
-        public StreetListAdapter(String[] streetNames) {
-            this(streetNames, null);
-        }
-
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            TextView streetName = (TextView) LayoutInflater
-                    .from(parent.getContext())
-                    .inflate(R.layout.street_list_item, parent, false);
-            return new ViewHolder(streetName);
-        }
-
-        @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
-            Log.d(TAG, "onBindViewHolder()"
-                    + " -- holder: " + holder
-                    + " -- position: " + position);
-            holder.getStreetNameView().setText(mStreetNames[position]);
-            holder.getStreetNameView().setOnClickListener(mListener);
-        }
-
-        @Override
-        public int getItemCount() {
-            return mStreetNames.length;
-        }
-
-        /**
-         * TODO: implement method
-         * @param streets
-         */
-        public void addItems(List<StreetBean> streets){
-
-        }
-
-
-        /**
-         * Inner inner class to hold {@link View}s that are displayed in the {@link RecyclerView} list items
-         */
-        public static class ViewHolder extends RecyclerView.ViewHolder {
-            private final TextView mStreetNameView;
-
-            public ViewHolder(TextView itemView) {
-                super(itemView);
-                mStreetNameView = itemView;
-            }
-
-            public TextView getStreetNameView() {
-                return mStreetNameView;
-            }
-        }
-
     }
 
 }
