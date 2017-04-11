@@ -50,6 +50,9 @@ dependencies {
     /** RecyclerView helper library */
     compile 'com.androidessence:recyclerviewcursoradapter:1.0.0'
 
+    /** Apache Commons text utilities */
+    compile 'org.apache.commons:commons-lang3:3.4'
+
     /** Espresso for Instrumented tests */
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'

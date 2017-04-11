@@ -10,7 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import static android.Manifest.permission_group.LOCATION;
+import org.apache.commons.lang3.text.WordUtils;
 
 /**
  * Created by jeffmcknight on 4/9/17.
@@ -112,6 +112,7 @@ public class StreetNameProvider extends ContentProvider{
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case STREETNAME:
+                cleanContentValues(values);
                 db.beginTransaction();
                 int returnCount = 0;
                 try {
@@ -130,6 +131,26 @@ public class StreetNameProvider extends ContentProvider{
             default:
                 return super.bulkInsert(uri, values);
         }
+    }
+
+    /**
+     * Switch all street names to title case
+     * @param values
+     */
+    private void cleanContentValues(ContentValues[] values) {
+        for (ContentValues eachValue : values){
+            convertStreetNameToTitleCase(eachValue);
+        }
+    }
+
+    /**
+     *
+     * @param eachValue
+     */
+    private void convertStreetNameToTitleCase(ContentValues eachValue) {
+        String streetName = WordUtils.capitalizeFully(
+                eachValue.getAsString(StreetContract.StreetnameEntry.COLUMN_FULLSTREETNAME));
+        eachValue.put(StreetContract.StreetnameEntry.COLUMN_FULLSTREETNAME, streetName);
     }
 
     /**
@@ -228,15 +249,16 @@ public class StreetNameProvider extends ContentProvider{
 
     /**
      * Log a warning if a required key is missing
-     * @param values
+     * @param value
      * @param keyName
      */
-    private void validateContentValue(ContentValues values, String keyName) {
-        if (!values.containsKey(keyName)){
-            Log.w(TAG, "validateLocationContentValues()"
-                    + " *** DOES NOT CONTAIN KEY: " + keyName
-            );
+    private void validateContentValue(ContentValues value, String keyName) {
+        if (value.containsKey(keyName)) {
+            convertStreetNameToTitleCase(value);
         }
+        Log.w(TAG, "validateLocationContentValues()"
+                + " *** DOES NOT CONTAIN KEY: " + keyName
+        );
     }
 
     /**
