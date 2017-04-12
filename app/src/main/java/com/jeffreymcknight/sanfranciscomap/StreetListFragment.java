@@ -24,12 +24,16 @@ import com.jeffreymcknight.sanfranciscomap.adapter.StreetCursorAdapter;
 import com.jeffreymcknight.sanfranciscomap.api.ApiClient;
 import com.jeffreymcknight.sanfranciscomap.model.StreetBean;
 import com.jeffreymcknight.sanfranciscomap.model.StreetContract;
+import com.jeffreymcknight.sanfranciscomap.view.FastScroller;
+import com.jeffreymcknight.sanfranciscomap.view.ScrollingLinearLayoutManager;
 
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
+import static android.R.attr.duration;
 
 /**
  * Displays a scrollable list of San Francisco streets
@@ -86,7 +90,13 @@ public class StreetListFragment extends Fragment implements LoaderManager.Loader
         View rootView = inflater.inflate(R.layout.fragment_street_list, container, false);
         /** Set up {@link RecyclerView} */
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.street_list);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        mRecyclerView.setLayoutManager(new ScrollingLinearLayoutManager(
+                getContext(),
+                LinearLayoutManager.VERTICAL,
+                false,
+                duration));
+        FastScroller fastScroller = (FastScroller) rootView.findViewById(R.id.fast_scroller);
+        fastScroller.setRecyclerView(mRecyclerView);
         Listener intersectionListener = new Listener() {
             @Override
             public void onIntersectionSelected(String street, String crossStreet) {

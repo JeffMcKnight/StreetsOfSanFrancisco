@@ -2,9 +2,9 @@
 <shape
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <corners android:radius="5dp" />
-    <size android:width="@dimen/scrollbar_size"
-        android:height="@dimen/scrollbar_size" />
+    <corners android:radius="3dp" />
+    <size android:width="@dimen/scrollbar_width"
+        android:height="@dimen/scrollbar_height" />
     <solid android:color="@color/colorPrimary" />
     <stroke android:width="@dimen/scrollbar_margin"
         android:color="@android:color/transparent"/>
