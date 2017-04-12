@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.androidessence.recyclerviewcursoradapter.RecyclerViewCursorAdapter;
 import com.androidessence.recyclerviewcursoradapter.RecyclerViewCursorViewHolder;
 import com.jeffreymcknight.sanfranciscomap.R;
+import com.jeffreymcknight.sanfranciscomap.StreetListFragment;
 import com.jeffreymcknight.sanfranciscomap.model.StreetContract;
 
 import java.util.HashSet;
@@ -26,7 +27,7 @@ public class StreetCursorAdapter
         extends RecyclerViewCursorAdapter<StreetCursorAdapter.ViewHolder>
         implements ViewHolderListener {
     private static final String TAG = StreetCursorAdapter.class.getSimpleName();
-    private View.OnClickListener mListener;
+    private StreetListFragment.Listener mIntersectionListener;
     private Set<Integer> mSelectedItems;
 
     /**
@@ -61,8 +62,8 @@ public class StreetCursorAdapter
 
 
     /**
-     * Update the list of selected items, {@link #mSelectedItems}, and notify the listener
-     * {@link #mListener}
+     * Update the list of selected items, {@link #mSelectedItems}, and notify {@link #mIntersectionListener} if
+     * a street intersection has been selected
      * @param view the {@link View} that received the click event
      * @param adapterPosition the adapter position of the {@link View} that received the click event
      */
@@ -72,8 +73,16 @@ public class StreetCursorAdapter
         } else {
             mSelectedItems.remove(adapterPosition);
         }
-        if (mListener != null){
-            mListener.onClick(view);
+        if (isIntersectionSelected()){
+            int i = 0;
+            String[] streetNames = new String[2];
+            for (Integer eachIndex : mSelectedItems) {
+                streetNames[i] = getStreetName(eachIndex);
+                i++;
+            }
+            if (mIntersectionListener != null){
+                mIntersectionListener.onIntersectionSelected(streetNames[0], streetNames[1]);
+            }
         }
     }
 
@@ -99,13 +108,9 @@ public class StreetCursorAdapter
     }
 
     /**
-     * Deselect all items in {@link StreetCursorAdapter} by setting all {@link View}s in
-     * {@link #mSelectedItems} to unselected and clearing the list
+     * Remove all items from {@link #mSelectedItems}
      */
     public void clearSelectedItems() {
-        for (Integer eachIndex : mSelectedItems){
-//            updateItemSelected(eachIndex, false);
-        }
         mSelectedItems.clear();
     }
 
@@ -113,14 +118,22 @@ public class StreetCursorAdapter
         return mSelectedItems;
     }
 
-    public void setListener(View.OnClickListener listener) {
-        mListener = listener;
+    public void setIntersectionListener(StreetListFragment.Listener intersectionListener) {
+        mIntersectionListener = intersectionListener;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public boolean isIntersectionSelected() {
+        return mSelectedItems.size() > 1;
     }
 
     /**
      *
      */
-    static class ViewHolder extends RecyclerViewCursorViewHolder implements View.OnClickListener {
+    public static class ViewHolder extends RecyclerViewCursorViewHolder implements View.OnClickListener {
         private final String TAG = ViewHolder.class.getSimpleName();
         private final TextView mStreetNameView;
         private ViewHolderListener mListener;

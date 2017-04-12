@@ -19,7 +19,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.jeffreymcknight.sanfranciscomap.adapter.StreetCursorAdapter;
 import com.jeffreymcknight.sanfranciscomap.api.ApiClient;
@@ -27,7 +26,6 @@ import com.jeffreymcknight.sanfranciscomap.model.StreetBean;
 import com.jeffreymcknight.sanfranciscomap.model.StreetContract;
 
 import java.util.List;
-import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -44,7 +42,6 @@ public class StreetListFragment extends Fragment implements LoaderManager.Loader
     private final int LOADER_ID = this.hashCode();
     private RecyclerView mRecyclerView;
     private StreetListFragment.Listener mListener;
-    private View.OnClickListener mClickListener;
     private StreetCursorAdapter mCursorAdapter;
     public static final String[] PLACEHOLDER_STREET_NAMES = new String[]{
             "1st St",
@@ -90,33 +87,44 @@ public class StreetListFragment extends Fragment implements LoaderManager.Loader
         /** Set up {@link RecyclerView} */
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.street_list);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        mClickListener = new View.OnClickListener() {
+        Listener intersectionListener = new Listener() {
             @Override
-            public void onClick(View view) {
-                Set<Integer> selectedIndexes = mCursorAdapter.getSelectedItems();
-                Log.i(TAG, "onClick()"
-                        + " -- selectedIndexes.size(): " + selectedIndexes.size());
-                if (selectedIndexes.size() >= 2){
-                    Integer[] streetIndexes = new Integer[selectedIndexes.size()];
-                    streetIndexes = selectedIndexes.toArray(streetIndexes);
-                    Log.i(TAG, "onClick()"
-                            + "\n -- streetIndexes[0]: " + streetIndexes[0]
-                            + "\n -- streetIndexes[1]: " + streetIndexes[1]
-                    );
-                    notifyIntersectionSelected(
-                            mCursorAdapter.getStreetName(streetIndexes[0]),
-                            mCursorAdapter.getStreetName(streetIndexes[1]));
-                    mCursorAdapter.clearSelectedItems();
-                }
+            public void onIntersectionSelected(String street, String crossStreet) {
+                handleIntersectionSelected(street, crossStreet);
             }
         };
-//        mAdapter = new StreetListAdapter(PLACEHOLDER_STREET_NAMES, mClickListener);
         mCursorAdapter = new StreetCursorAdapter(getContext());
-        mCursorAdapter.setListener(mClickListener);
+        mCursorAdapter.setIntersectionListener(intersectionListener);
         mRecyclerView.setAdapter(mCursorAdapter);
 
         updateStreetNames();
         return rootView;
+    }
+
+    /**
+     * Notify the listener if we have selected a street intersection.  After notifying, clear the
+     * selected items from {@link #mRecyclerView}
+     */
+    private void handleIntersectionSelected(String street, String crossStreet) {
+        notifyIntersectionSelected(street, crossStreet);
+        clearSelectedItems();
+    }
+
+    /**
+     * Clear selected list item views
+     * TODO: clear the selected items in a less hacky way; or maybe don't clear the selections, and
+     * figure out what to do if user selects a third item (maybe replace the oldest selection and
+     * explain with a SnackBar?)
+     */
+    private void clearSelectedItems() {
+        for (Integer eachIndex : mCursorAdapter.getSelectedItems()){
+            StreetCursorAdapter.ViewHolder streetViewHolder
+                    = (StreetCursorAdapter.ViewHolder) mRecyclerView.findViewHolderForAdapterPosition(eachIndex);
+            if (streetViewHolder != null){
+                streetViewHolder.setSelected(false);
+            }
+        }
+        mCursorAdapter.clearSelectedItems();
     }
 
     /**
